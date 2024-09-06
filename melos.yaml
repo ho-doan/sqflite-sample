@@ -1,0 +1,92 @@
+name: app
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+
+packages:
+  - '*'
+  - packages/**
+
+scripts:
+  analyze:
+    exec: dart analyze .
+    failFast: true
+    description: analyze all modules.
+  pub:
+    exec: flutter pub get
+    failFast: true
+    description: pub get all modules.
+  clean:
+    exec: flutter clean
+    failFast: true
+    description: pub get all modules.
+  d_pub:
+    exec: dart pub get
+    failFast: true
+    description: pub get all modules.
+  test:
+    exec: flutter test
+    failFast: true
+    packageFilters:
+      dirExists: test
+    description: test all modules.
+  test_common:
+    exec: flutter test --coverage &&
+      lcov --remove coverage/lcov.info -o coverage/lcov.info &&
+      genhtml coverage/lcov.info -o coverage/html
+    failFast: true
+    packageFilters:
+      scope: "*common*"
+    description: test all modules.
+  test_c:
+    exec: flutter test --coverage &&
+      lcov --remove coverage/lcov.info 'lib/**/*.g.dart' -o coverage/lcov.info &&
+      genhtml coverage/lcov.info -o coverage/html
+    failFast: true
+    packageFilters:
+      dirExists: "coverage"
+  test_domain:
+    exec: flutter test --coverage &&
+      lcov --remove coverage/lcov.info 'lib/**/*.g.dart' -o coverage/lcov.info &&
+      genhtml coverage/lcov.info -o coverage/html
+    failFast: true
+    packageFilters:
+      scope: "*domain*"
+    description: test all modules.
+  test_run:
+    run: melos exec --dir-exists="test" --fail-fast -- flutter test --no-pub --coverage
+    failFast: true
+    concurrency: 1
+    description: test all modules.
+  # integration:
+  #   packageFilters:
+  #     # --scope="*pegasus*"
+  #     scope: "*pegasus*"
+  #   exec: flutter test integration_test --flavor dev
+  #   failFast: true
+    
+  #   description: test all modules.
+  build:
+    exec: dart pub run build_runner build --delete-conflicting-outputs
+    failFast: true
+    packageFilters:
+      dependsOn: build_runner
+    description: build_runner build all modules.
+  build-all:
+    concurrency: 1
+    run: melos exec --fail-fast --depends-on=build_runner dart pub run build_runner build --delete-conflicting-outputs
+    failFast: true
+    description: build_runner build all modules.
+  mock:
+    exec: dart bin/main.dart
+    failFast: true
+    packageFilters:
+      scope: "*mocks*"
+    description: build_runner build all modules.
+  # ra:
+  #   exec: flutter run --flavor dev -t lib/main_dev.dart -d emulator-5554
+  #   failFast: true
+  #   packageFilters:
+  #     scope: "*pegasus*"
+  #   description: run app

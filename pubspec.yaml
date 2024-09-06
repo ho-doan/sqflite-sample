@@ -1,0 +1,11 @@
+name: pegasus
+description: "A new Flutter project."
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.1 <4.0.0'
+
+dev_dependencies:
+  melos: ^5.1.0
+flutter:

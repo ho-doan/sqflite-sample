@@ -1,0 +1,33 @@
+targets:
+  $default:
+    builders:
+      sqflite_model_builder:
+        enabled: true
+      db_config_builder:
+        enabled: true
+      import_db_config:
+        enabled: true
+
+builders:
+  sqflite_model_builder:
+    import: "package:sqflite_generator/sqflite_generator.dart"
+    builder_factories: ["sqfliteModelBuilder"]
+    build_extensions: { ".dart": [".sqflite_model_builder.g.part"] }
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
+    runs_before: ["sqflite_generator|db_config_builder"]
+  db_config_builder:
+    import: "package:sqflite_generator/sqflite_generator.dart"
+    builder_factories: ["configBuilder"]
+    build_extensions: { ".dart": [".db_config.dart"] } #".config_builder.g.part",
+    auto_apply: dependents
+    build_to: source
+    # applies_builders: ["source_gen|combining_builder"]
+  import_db_config:
+    import: "package:sqflite_generator/sqflite_generator.dart"
+    builder_factories: ["importConfigBuilder"]
+    runs_before: ["sqflite_generator|db_config_builder","sqflite_generator|sqflite_model_builder"]
+    build_extensions: { ".dart": [".sql_model.json"] }
+    auto_apply: dependents
+    build_to: cache
