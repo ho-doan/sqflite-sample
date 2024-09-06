@@ -9,10 +9,13 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 
 import 'package:example/core/models/cat.dart' as i0;
+
+import 'package:sql_external_db/sql_external_db.dart';
+
+import 'dart:io';
 
 final List<String> _schemas = [i0.CatQuery.createTable];
 
@@ -20,9 +23,15 @@ Future<Database> $configSql([RootIsolateToken? token]) async {
   if (token != null) {
     BackgroundIsolateBinaryMessenger.ensureInitialized(token);
   }
+  Directory? documentsDirectory;
+  final pathNative = await SqlExternalDb.instance
+      .externalPath('group.com.hodoan.db_shared//demo.db');
+  if (pathNative != null) {
+    documentsDirectory = Directory(pathNative);
+  }
 
-  final documentsDirectory = await getApplicationDocumentsDirectory();
-  final path = join(documentsDirectory.path, 'pegasus.db');
+  assert(documentsDirectory != null, 'external storage directory is empty');
+  final path = join(documentsDirectory!.path, 'demo.db');
 
   final database = await openDatabase(
     path,

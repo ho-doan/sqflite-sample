@@ -14,7 +14,6 @@ import 'import_config_builder.dart';
 const imports = '''import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:developer';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 ''';
 
@@ -38,11 +37,18 @@ class ConfigGenerator extends GeneratorForAnnotation<SqlConfig> {
       final lst = json as List;
       configs.addAll(lst.map(ModelConfigGen.fromJson));
     }
+
     //#endregion
 
     final entitiesImports = <String>[
       for (int i = 0; i < configs.length; i++)
         "import '${configs[i].imports.first}' as i$i;",
+      if (config.externalDB != null)
+        "import 'package:sql_external_db/sql_external_db.dart';",
+      if (config.externalDB != null)
+        "import 'dart:io';"
+      else
+        "import 'package:path_provider/path_provider.dart'",
     ];
 
     final schemasGen = <String>[
@@ -90,9 +96,16 @@ class ConfigGenerator extends GeneratorForAnnotation<SqlConfig> {
           if (token != null) {
             BackgroundIsolateBinaryMessenger.ensureInitialized(token);
           }
-
-          final documentsDirectory = await getApplicationDocumentsDirectory();
-          final path = join(documentsDirectory.path, '${config.name}');
+          Directory? documentsDirectory;
+          ${config.externalDB != null ? """
+            final pathNative = await SqlExternalDb.instance
+                  .externalPath('group.com.hodoan.db_shared//demo.db');
+              if (pathNative != null) {
+                documentsDirectory = Directory(pathNative);
+              }
+            """ : 'documentsDirectory = await getApplicationDocumentsDirectory()'}
+          assert(documentsDirectory != null, '${config.externalDB != null ? 'external storage ' : ''}directory is empty');
+          final path = join(documentsDirectory!.path, '${config.name}');
 
           final database = await openDatabase(
             path,

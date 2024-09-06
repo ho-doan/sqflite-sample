@@ -1,7 +1,22 @@
+import 'dart:async';
+import 'dart:developer';
+
+import 'package:example/core/models/cat.dart';
+import 'package:example/core/services/_local_database.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
-  runApp(const MyApp());
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await LocalDatabase.init();
+      runApp(const MyApp());
+    },
+    (e, s) {
+      log(e.toString());
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -29,13 +44,22 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends State<MyHomePage> with LocalDatabase {
+  List<Cat> _cats = [];
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  @override
+  void initState() {
+    _requestPer();
+    try {
+      Cat(
+        age: DateTime.now().toString(),
+        name: 'Cat ${DateTime.now()}',
+      ).insert(instance!);
+      _initList();
+    } catch (e) {
+      print(e);
+    }
+    super.initState();
   }
 
   @override
@@ -49,21 +73,35 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            for (final cat in _cats)
+              Text(
+                cat.name,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _initList,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  void _initList() async {
+    Cat(
+      age: DateTime.now().toString(),
+      name: 'Cat ${DateTime.now()}',
+    ).insert(instance!);
+    final cats = await CatQuery.getAll(instance!);
+    setState(() {
+      _cats = cats;
+    });
+  }
+
+  void _requestPer() async {
+    await Permission.storage.request().then(print);
+    await Permission.manageExternalStorage.request().then(print);
   }
 }
